@@ -9,6 +9,11 @@ public class Tetrahedron : MonoBehaviour
 
 	public bool sharedVertices = false;
 
+	Vector3 p0;
+	Vector3 p1;
+	Vector3 p2;
+	Vector3 p3;
+
 	public void Rebuild()
 	{
 		MeshFilter meshFilter = GetComponent<MeshFilter>();
@@ -18,10 +23,10 @@ public class Tetrahedron : MonoBehaviour
 			return;
 		}
 
-		Vector3 p0 = new Vector3(0, 0, 0);
-		Vector3 p1 = new Vector3(1, 0, 0);
-		Vector3 p2 = new Vector3(0.5f, 0, Mathf.Sqrt(0.75f));
-		Vector3 p3 = new Vector3(0.5f, Mathf.Sqrt(0.75f), Mathf.Sqrt(0.75f) / 3);
+		p0 = new Vector3(0, 0, 0);
+		p1 = new Vector3(1, 0, 0);
+		p2 = new Vector3(0.5f, 0, Mathf.Sqrt(0.75f));
+		p3 = new Vector3(0.5f, Mathf.Sqrt(0.75f), Mathf.Sqrt(0.75f) / 3);
 
 		Mesh mesh = meshFilter.sharedMesh;
 		if (mesh == null)
@@ -79,6 +84,11 @@ public class Tetrahedron : MonoBehaviour
 		mesh.RecalculateBounds();
 		mesh.Optimize();
 	}
+
+	public Vector3 getFarthestPointInDirection(Vector3 direction_)
+    {
+		Vector3.Dot(p0, direction_);
+    }
 
 	// Use this for initialization
 	void Start()
