@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Runtime;
 
 [RequireComponent(typeof(MeshCollider))]
 [RequireComponent(typeof(MeshFilter))]
@@ -34,16 +35,12 @@ public class Tetrahedron : MonoBehaviour
 			return;
 		}
 
-		
-	
 		if (gameObject.tag == "Tetra1")
 		{
 			p0 = new Vector3(A.x, A.y, A.z);
 			p1 = new Vector3(B.x, B.y, B.z);
 			p2 = new Vector3(C.x, C.y, C.z);
 			p3 = new Vector3(D.x, D.y, D.z);
-
-			Debug.Log("Tetra1: " + p0 + ", " + p1 + ", " + p2 + ", " + p3);
 		}
 
 		else if (gameObject.tag == "Tetra2")
@@ -124,8 +121,8 @@ public class Tetrahedron : MonoBehaviour
 		Vector3 point1 = new Vector3(0.0f, 0.0f, 0.0f); 
 		if(maxDot.Equals(shape1DotProduct.x))
         {
-			point1 = A; 
-        }
+			point1 = A;
+		}
 
 		else if (maxDot.Equals(shape1DotProduct.y))
         {
@@ -141,7 +138,6 @@ public class Tetrahedron : MonoBehaviour
 		{
 			point1 = D;
 		}
-
 
 		Vector4 shape2DotProduct;
 		shape2DotProduct.x = Vector3.Dot(E, direction_);
@@ -180,12 +176,32 @@ public class Tetrahedron : MonoBehaviour
 	// Use this for initialization
 	void Start()
 	{
+		Rebuild();
+		Simplex simplex = new Simplex();
 
+		Vector3 direction1 = Vector3.Normalize(((E + F + G + H) / 4.0f) - ((A + B + C + D) / 4.0f));
+		simplex.support(0, this, direction1);
+
+		Vector3 direction2 = -direction1;
+		simplex.support(1, this, direction2);
+
+		Vector3 direction3 = Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), simplex.getPoint(0) - new Vector3(0.0f, 0.0f, 0.0f)));	
+		simplex.support(2, this, direction3);
+
+		Vector3 direction4 = Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), simplex.getPoint(2) - simplex.getPoint(0));
+		simplex.support(3, this, direction4);
+
+
+		string[] letters = {"a", "b", "c", "d" };
+		for (int i = 0; i < 4; i++)
+        {
+			Debug.Log(letters[i] + " = " + simplex.getPoint(i));
+        }
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
-		Rebuild();
+
 	}
 }

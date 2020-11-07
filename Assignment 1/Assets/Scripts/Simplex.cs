@@ -4,13 +4,20 @@ using UnityEngine;
 
 public class Simplex : MonoBehaviour
 {
-    public Vector3 support(Tetrahedron shape1_, Tetrahedron shape2_, Vector3 direction_)
+    Vector3[] pointsList = new Vector3[4];
+    public void support(int pointIndex_, Tetrahedron tetrahedron_, Vector3 direction_)
     {
-        Vector3 p1 = shape1_.getFarthestPointInDirection(direction_);
-        Vector3 p2 = shape2_.getFarthestPointInDirection(direction_);
 
-        Vector3 p3 = p1 - p2;
+        Vector3 newPoint = tetrahedron_.getFarthestPointInDirection(direction_);
 
-        return p3; 
+        if (pointIndex_ < 4)//Make sure the index isn't more than 4, to assure we only have 4 points 
+        {
+            pointsList[pointIndex_] = newPoint; //using an array and the pointIndex, we can swap points! 
+        }
+    }
+
+    public Vector3 getPoint(int pointIndex_)
+    {
+        return pointsList[pointIndex_];
     }
 }
