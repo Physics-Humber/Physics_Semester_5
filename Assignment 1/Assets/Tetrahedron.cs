@@ -111,12 +111,12 @@ public class Tetrahedron : MonoBehaviour
 	public Vector3 getFarthestPointInDirection(Vector3 direction_)
     {
 		Vector4 shape1DotProduct;
-		shape1DotProduct.x = Vector3.Dot(A, direction_);
+		shape1DotProduct.x = Vector3.Dot(A, direction_); //Get the dot product for A, B, C, D 
 		shape1DotProduct.y = Vector3.Dot(B, direction_);
 		shape1DotProduct.z = Vector3.Dot(C, direction_);
 		shape1DotProduct.w = Vector3.Dot(D, direction_);
 
-		float maxDot = Mathf.Max(shape1DotProduct.x, shape1DotProduct.y, shape1DotProduct.z, shape1DotProduct.w);
+		float maxDot = Mathf.Max(shape1DotProduct.x, shape1DotProduct.y, shape1DotProduct.z, shape1DotProduct.w); //Check which dot product has the greatest value
 
 		Vector3 point1 = new Vector3(0.0f, 0.0f, 0.0f); 
 		if(maxDot.Equals(shape1DotProduct.x))
@@ -179,18 +179,36 @@ public class Tetrahedron : MonoBehaviour
 		Rebuild();
 		Simplex simplex = new Simplex();
 
-		Vector3 direction1 = Vector3.Normalize(((E + F + G + H) / 4.0f) - ((A + B + C + D) / 4.0f));
+		Vector3 direction1 = Vector3.Normalize(((E + F + G + H) / 4.0f) - ((A + B + C + D) / 4.0f)); //C2 - C1 
 		simplex.support(0, this, direction1);
 
-		Vector3 direction2 = -direction1;
+		Vector3 direction2 = -direction1; //Opposite of direction 1
 		simplex.support(1, this, direction2);
 
-		Vector3 direction3 = Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), simplex.getPoint(0) - new Vector3(0.0f, 0.0f, 0.0f)));	
-		simplex.support(2, this, direction3);
 
-		Vector3 direction4 = Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), simplex.getPoint(2) - simplex.getPoint(0));
+        //(ab×ao)×ab
+        Vector3 direction3 = Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), simplex.getPoint(0) - new Vector3(0.0f, 0.0f, 0.0f)));
+        simplex.support(2, this, direction3);
+
+        //N1 = ab×ac
+        //N2 = -N1
+        Vector3 N1 = Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), simplex.getPoint(2) - simplex.getPoint(0));
+        Vector3 N2 = -N1;
+        Vector3 T = (simplex.getPoint(0) + simplex.getPoint(1) + simplex.getPoint(2)) / 3;
+        float T1 = Vector3.Dot(T, N1);
+
+        Vector3 direction4;
+        if (T1 > 0.0f)
+        {
+           direction4  = N1; 
+        }
+
+        else
+        {
+            direction4 = N2;
+        }
+
 		simplex.support(3, this, direction4);
-
 
 		string[] letters = {"a", "b", "c", "d" };
 		for (int i = 0; i < 4; i++)
