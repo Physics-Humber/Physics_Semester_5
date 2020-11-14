@@ -26,9 +26,11 @@ public class Tetrahedron : MonoBehaviour
 	Vector3 p2;
 	Vector3 p3;
 
+	MeshFilter meshFilter;
+	Mesh mesh;
 	public void Rebuild()
 	{
-		MeshFilter meshFilter = GetComponent<MeshFilter>();
+		meshFilter = GetComponent<MeshFilter>();
 		if (meshFilter == null)
 		{
 			Debug.LogError("MeshFilter not found!");
@@ -51,7 +53,7 @@ public class Tetrahedron : MonoBehaviour
 			p3 = new Vector3(H.x, H.y, H.z);
 		}
 
-		Mesh mesh = meshFilter.sharedMesh;
+		 mesh = meshFilter.sharedMesh;
 		if (mesh == null)
 		{
 			meshFilter.mesh = new Mesh();
@@ -173,10 +175,8 @@ public class Tetrahedron : MonoBehaviour
 		return newResult;
     }
 
-	// Use this for initialization
-	void Start()
-	{
-		Rebuild();
+	void CheckCollision()
+    {
 		Simplex simplex = new Simplex();
 
 		Vector3 direction1 = Vector3.Normalize(((E + F + G + H) / 4.0f) - ((A + B + C + D) / 4.0f)); //C2 - C1 
@@ -185,41 +185,113 @@ public class Tetrahedron : MonoBehaviour
 		Vector3 direction2 = -direction1; //Opposite of direction 1
 		simplex.support(1, this, direction2);
 
+		//(ab×ao)×ab
+		Vector3 direction3 = Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), simplex.getPoint(0) - new Vector3(0.0f, 0.0f, 0.0f)));
+		simplex.support(2, this, direction3);
 
-        //(ab×ao)×ab
-        Vector3 direction3 = Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), simplex.getPoint(0) - new Vector3(0.0f, 0.0f, 0.0f)));
-        simplex.support(2, this, direction3);
+		//N1 = ab×ac
+		//N2 = -N1
+		Vector3 N1 = Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), simplex.getPoint(2) - simplex.getPoint(0));
+		Vector3 N2 = -N1;
+		Vector3 T = (simplex.getPoint(0) + simplex.getPoint(1) + simplex.getPoint(2)) / 3;
+		float T1 = Vector3.Dot(T, N1);
 
-        //N1 = ab×ac
-        //N2 = -N1
-        Vector3 N1 = Vector3.Cross(simplex.getPoint(1) - simplex.getPoint(0), simplex.getPoint(2) - simplex.getPoint(0));
-        Vector3 N2 = -N1;
-        Vector3 T = (simplex.getPoint(0) + simplex.getPoint(1) + simplex.getPoint(2)) / 3;
-        float T1 = Vector3.Dot(T, N1);
+		Vector3 direction4;
+		if (T1 < 0.0f)
+		{
+			direction4 = N1;
+		}
 
-        Vector3 direction4;
-        if (T1 > 0.0f)
-        {
-           direction4  = N1; 
-        }
-
-        else
-        {
-            direction4 = N2;
-        }
+		else
+		{
+			direction4 = N2;
+		}
 
 		simplex.support(3, this, direction4);
 
-		string[] letters = {"a", "b", "c", "d" };
-		for (int i = 0; i < 4; i++)
+		Matrix4x4 Matrix1 = new Matrix4x4();
+		Matrix1.SetRow(0, new Vector4(simplex.getPoint(0).x, simplex.getPoint(0).y, simplex.getPoint(0).z, 1));
+		Matrix1.SetRow(1, new Vector4(simplex.getPoint(1).x, simplex.getPoint(1).y, simplex.getPoint(1).z, 1));
+		Matrix1.SetRow(2, new Vector4(simplex.getPoint(2).x, simplex.getPoint(2).y, simplex.getPoint(2).z, 1));
+		Matrix1.SetRow(3, new Vector4(simplex.getPoint(3).x, simplex.getPoint(3).y, simplex.getPoint(3).z, 1));
+
+		float D0 = Matrix1.determinant;
+
+		Matrix4x4 Matrix2 = new Matrix4x4();
+		Matrix2.SetRow(0, new Vector4(0, 0, 0, 1));
+		Matrix2.SetRow(1, new Vector4(simplex.getPoint(1).x, simplex.getPoint(1).y, simplex.getPoint(1).z, 1));
+		Matrix2.SetRow(2, new Vector4(simplex.getPoint(2).x, simplex.getPoint(2).y, simplex.getPoint(2).z, 1));
+		Matrix2.SetRow(3, new Vector4(simplex.getPoint(3).x, simplex.getPoint(3).y, simplex.getPoint(3).z, 1));
+
+		float D1 = Matrix2.determinant;
+
+		Matrix4x4 Matrix3 = new Matrix4x4();
+		Matrix3.SetRow(0, new Vector4(simplex.getPoint(0).x, simplex.getPoint(0).y, simplex.getPoint(0).z, 1));
+		Matrix3.SetRow(1, new Vector4(0, 0, 0, 1));
+		Matrix3.SetRow(2, new Vector4(simplex.getPoint(2).x, simplex.getPoint(2).y, simplex.getPoint(2).z, 1));
+		Matrix3.SetRow(3, new Vector4(simplex.getPoint(3).x, simplex.getPoint(3).y, simplex.getPoint(3).z, 1));
+
+		float D2 = Matrix3.determinant;
+
+		Matrix4x4 Matrix4 = new Matrix4x4();
+		Matrix4.SetRow(0, new Vector4(simplex.getPoint(0).x, simplex.getPoint(0).y, simplex.getPoint(0).z, 1));
+		Matrix4.SetRow(1, new Vector4(simplex.getPoint(1).x, simplex.getPoint(1).y, simplex.getPoint(1).z, 1));
+		Matrix4.SetRow(2, new Vector4(0, 0, 0, 1));
+		Matrix4.SetRow(3, new Vector4(simplex.getPoint(3).x, simplex.getPoint(3).y, simplex.getPoint(3).z, 1));
+
+		float D3 = Matrix4.determinant;
+
+		Matrix4x4 Matrix5 = new Matrix4x4();
+		Matrix5.SetRow(0, new Vector4(simplex.getPoint(0).x, simplex.getPoint(0).y, simplex.getPoint(0).z, 1));
+		Matrix5.SetRow(1, new Vector4(simplex.getPoint(1).x, simplex.getPoint(1).y, simplex.getPoint(1).z, 1));
+		Matrix5.SetRow(2, new Vector4(simplex.getPoint(2).x, simplex.getPoint(2).y, simplex.getPoint(2).z, 1));
+		Matrix5.SetRow(3, new Vector4(0, 0, 0, 1));
+
+		float D4 = Matrix5.determinant;
+
+		float D0Sign = Mathf.Sign(D0);
+
+		if (Mathf.Sign(D1) == D0Sign && Mathf.Sign(D2) == D0Sign && Mathf.Sign(D3) == D0Sign && Mathf.Sign(D4) == D0Sign)
+		{
+			Debug.Log("Tetrahedron is colliding!");
+			Time.timeScale = 0;
+		}
+
+		else
         {
-			Debug.Log(letters[i] + " = " + simplex.getPoint(i));
+			Debug.Log("Tetrahedron is NOT colliding!");
         }
+	}
+
+	// Use this for initialization
+	void Start()
+	{
+		Rebuild();
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
+		if (gameObject.tag == "Tetra1")
+		{
+			Matrix4x4 localToWorld = transform.localToWorldMatrix;
 
+			A = localToWorld.MultiplyPoint3x4(mesh.vertices[0]);
+			B = localToWorld.MultiplyPoint3x4(mesh.vertices[1]);
+			C = localToWorld.MultiplyPoint3x4(mesh.vertices[2]);
+			D = localToWorld.MultiplyPoint3x4(mesh.vertices[3]);
+		}
+
+		if (gameObject.tag == "Tetra2")
+		{
+			Matrix4x4 localToWorld = transform.localToWorldMatrix;
+
+			E = localToWorld.MultiplyPoint3x4(mesh.vertices[0]);
+			F = localToWorld.MultiplyPoint3x4(mesh.vertices[1]);
+			G = localToWorld.MultiplyPoint3x4(mesh.vertices[2]);
+			H = localToWorld.MultiplyPoint3x4(mesh.vertices[3]);
+		}
+
+		CheckCollision();
 	}
 }
