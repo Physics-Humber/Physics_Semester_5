@@ -175,7 +175,8 @@ public class Tetrahedron : MonoBehaviour
 		return newResult;
     }
 
-	void CheckCollision()
+    bool isColliding = false; 
+	bool CheckCollision()
     {
 		Simplex simplex = new Simplex();
 
@@ -254,13 +255,15 @@ public class Tetrahedron : MonoBehaviour
 		if (Mathf.Sign(D1) == D0Sign && Mathf.Sign(D2) == D0Sign && Mathf.Sign(D3) == D0Sign && Mathf.Sign(D4) == D0Sign)
 		{
 			Debug.Log("Tetrahedron is colliding!");
-			Time.timeScale = 0;
+            isColliding = true; 
 		}
 
 		else
         {
-			Debug.Log("Tetrahedron is NOT colliding!");
+            isColliding = false; 
         }
+
+        return isColliding;
 	}
 
 	// Use this for initialization
